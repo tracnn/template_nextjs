@@ -1,9 +1,3 @@
-import { PageContainer } from "@/components/PageContainer/PageContainer";
-
-export default function Dashboard() {
-  return (
-    <PageContainer title="Dashboard">
-      <div>Dashboard</div>
-    </PageContainer>
-  );
+export default function DashboardPage() {
+  return <div>Dashboard placeholder</div>;
 }
