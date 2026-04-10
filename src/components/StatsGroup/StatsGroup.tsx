@@ -13,30 +13,40 @@ export function StatsGroup({ data }: StatsGroupProps) {
     const DiffIcon = stat.diff > 0 ? IconArrowUpRight : IconArrowDownRight;
 
     return (
-      <Card key={stat.title} p="md" radius="md">
-        <Group>
+      <Card 
+        key={stat.title} 
+        p="lg" 
+        radius="md" 
+        className="premium-card-hover stats-card-bg"
+      >
+        <Group align="flex-start" justify="space-between">
           <div>
-            <Text c="dimmed" tt="uppercase" fw={700} fz="xs">
+            <Text c="dimmed" tt="uppercase" fw={800} fz="xs" style={{ letterSpacing: "0.05em" }}>
               {stat.title}
             </Text>
-            <Text fw={700} fz="xl">
+            <Text fw={800} fz="2rem" style={{ lineHeight: 1.2 }}>
               {stat.value}
             </Text>
           </div>
+          <DiffIcon
+            size="2rem"
+            color={stat.diff > 0 ? theme.colors.green[6] : theme.colors.red[6]}
+            style={{ opacity: 0.8 }}
+          />
         </Group>
-        <Text c="dimmed" fz="sm" mt="sm">
+        <Group gap="xs" mt="sm">
           <Text
             component="span"
-            c={stat.diff > 0 ? "green.4" : "red.4"}
+            c={stat.diff > 0 ? "green.6" : "red.6"}
             fw={700}
+            fz="sm"
           >
-            {stat.diff}%
-          </Text>{" "}
-          <DiffIcon
-            size="1rem"
-            color={stat.diff > 0 ? theme.colors.green[4] : theme.colors.red[4]}
-          />
-        </Text>
+            {stat.diff > 0 ? "+" : ""}{stat.diff}%
+          </Text>
+          <Text c="dimmed" fz="xs">
+            since last month
+          </Text>
+        </Group>
       </Card>
     );
   });

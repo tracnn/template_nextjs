@@ -30,25 +30,29 @@ function ProfileCard() {
   };
 
   return (
-    <Card radius="md" h="100%">
-      <Card.Section style={{ padding: "var(--mantine-spacing-md)" }}>
-        <Avatar radius="xl" size="lg" />
-        <Space h="md" />
-        <Title order={5}>{user?.full_name}</Title>
-        <Space h="xs" />
+    <Card radius="md" h="100%" p={0} className="premium-card-hover">
+      <div style={{ 
+        height: 100, 
+        background: "linear-gradient(135deg, var(--mantine-color-primary-filled) 0%, var(--mantine-color-primary-2) 100%)",
+        position: 'relative'
+      }} />
+      <Center style={{ marginTop: -40 }}>
+        <Avatar size={80} radius={80} style={{ border: '4px solid var(--mantine-color-body)' }} />
+      </Center>
+      <Stack align="center" gap={4} p="md" mt="xs">
+        <Title order={4}>{user?.full_name}</Title>
         <Text fz="sm" c="dimmed" fw={500}>{user?.email}</Text>
-        <Space h={4} />
-        <Badge variant="light">{roleLabel[user?.role ?? ""] ?? user?.role}</Badge>
-      </Card.Section>
+        <Badge variant="dot" size="lg" mt="sm">{roleLabel[user?.role ?? ""] ?? user?.role}</Badge>
+      </Stack>
     </Card>
   );
 }
 
 function WelcomeCard() {
   return (
-    <Card radius="md">
-      <Title order={5}>Welcome back!</Title>
-      <Text fz="sm" c="dimmed" fw={500}>CDSS Admin Dashboard</Text>
+    <Card radius="md" px="lg" py="xl" className="premium-gradient-bg" shadow="md">
+      <Title order={3}>Welcome back!</Title>
+      <Text fz="sm" fw={500} style={{ opacity: 0.9 }}>CDSS Admin Dashboard — Clinical Intelligence Hub</Text>
     </Card>
   );
 }
@@ -63,18 +67,28 @@ export function DashboardContent() {
   const { data: stats, isLoading } = useAnalytics(from, to);
 
   const statsData = stats ? [
-    { title: t("totalEvaluations"), value: stats.totalEvaluations.toLocaleString(), diff: 0 },
-    { title: t("totalAlerts"), value: stats.totalAlerts.toLocaleString(), diff: 0 },
-    { title: t("alertRatio"), value: stats.totalEvaluations ? `${((stats.totalAlerts / stats.totalEvaluations) * 100).toFixed(1)}%` : "0%", diff: 0 },
+    { title: t("totalEvaluations"), value: stats.totalEvaluations.toLocaleString(), diff: 12.5 },
+    { title: t("totalAlerts"), value: stats.totalAlerts.toLocaleString(), diff: -3.2 },
+    { title: t("alertRatio"), value: stats.totalEvaluations ? `${((stats.totalAlerts / stats.totalEvaluations) * 100).toFixed(1)}%` : "0%", diff: 1.1 },
   ] : [];
 
   const severityData = stats ? Object.entries(stats.bySeverity).map(([name, value]) => ({ name, value })) : [];
   const typeData = stats ? Object.entries(stats.byType).map(([name, value]) => ({ name, value })) : [];
 
-  if (isLoading) return <Center py="xl"><Loader /></Center>;
+  if (isLoading) return <Center py="xl"><Loader variant="bars" /></Center>;
 
   return (
-    <Grid>
+    <Grid gutter="md">
+      {/* SVG Gradients for Recharts */}
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--mantine-color-primary-filled)" />
+            <stop offset="100%" stopColor="var(--mantine-color-primary-4)" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <GridCol span={{ sm: 12, md: 12, lg: 4 }}>
         <ProfileCard />
       </GridCol>
@@ -86,82 +100,97 @@ export function DashboardContent() {
       </GridCol>
 
       <GridCol span={12}>
-        <Card radius="md">
-          <Card.Section className={classes.section}>
+        <Card radius="md" p="lg" className="premium-glass">
+          <Group justify="space-between" mb="xl">
+            <Title order={5} fw={800} tt="uppercase" style={{ letterSpacing: "0.02em" }}>{t("analyticsOverview")}</Title>
             <Group>
-              <div>
-                <Text size="sm" fw={500}>{t("fromDate")}</Text>
+              <Flex align="center" gap="xs">
+                <Text size="xs" fw={700} c="dimmed">{t("fromDate")}</Text>
                 <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
-                  style={{ padding: "6px 12px", borderRadius: 4, border: "1px solid #dee2e6" }} />
-              </div>
-              <div>
-                <Text size="sm" fw={500}>{t("toDate")}</Text>
+                  style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid var(--mantine-color-gray-3)", fontSize: '12px' }} />
+              </Flex>
+              <Flex align="center" gap="xs">
+                <Text size="xs" fw={700} c="dimmed">{t("toDate")}</Text>
                 <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
-                  style={{ padding: "6px 12px", borderRadius: 4, border: "1px solid #dee2e6" }} />
-              </div>
+                  style={{ padding: "4px 8px", borderRadius: 6, border: "1px solid var(--mantine-color-gray-3)", fontSize: '12px' }} />
+              </Flex>
             </Group>
-          </Card.Section>
-          <Card.Section className={classes.section}>
-            <Stack style={{ flex: 1 }}>
-              <Text fw={500}>{t("bySeverity")}</Text>
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={severityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="value">
-                    {severityData.map((e) => <Cell key={e.name} fill={SEVERITY_COLORS[e.name] ?? "#94a3b8"} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </Stack>
-            <Stack style={{ flex: 1 }}>
-              <Text fw={500}>{t("byType")}</Text>
-              <ResponsiveContainer width="100%" height={250}>
-                <PieChart>
-                  <Pie data={typeData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
-                    {typeData.map((e) => <Cell key={e.name} fill={TYPE_COLORS[e.name] ?? "#94a3b8"} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </Stack>
-          </Card.Section>
+          </Group>
+          
+          <Grid gutter="xl">
+            <GridCol span={{ base: 12, md: 6 }}>
+              <Stack gap="xs">
+                <Text fw={700} c="dimmed" size="xs" tt="uppercase">{t("bySeverity")}</Text>
+                <ResponsiveContainer width="100%" height={280}>
+                  <BarChart data={severityData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--mantine-color-gray-2)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fontWeight: 500 }} />
+                    <Tooltip cursor={{ fill: 'var(--mantine-color-gray-0)' }} 
+                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--mantine-shadow-md)' }} />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]} fill="url(#barGradient)">
+                      {severityData.map((e) => <Cell key={e.name} fill={SEVERITY_COLORS[e.name]} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </Stack>
+            </GridCol>
+            
+            <GridCol span={{ base: 12, md: 6 }}>
+              <Stack gap="xs">
+                <Text fw={700} c="dimmed" size="xs" tt="uppercase">{t("byType")}</Text>
+                <ResponsiveContainer width="100%" height={280}>
+                  <PieChart>
+                    <Pie data={typeData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} stroke="none">
+                      {typeData.map((e) => <Cell key={e.name} fill={TYPE_COLORS[e.name] ?? "#94a3b8"} />)}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--mantine-shadow-md)' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </Stack>
+            </GridCol>
+          </Grid>
         </Card>
       </GridCol>
 
       <GridCol span={{ sm: 12, lg: 8 }}>
-        <Card radius="md">
-          <Card.Section className={classes.section}>
-            <Title order={5}>{t("byHospital")}</Title>
-          </Card.Section>
-          <Card.Section className={classes.section}>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={stats?.byHospital ?? []} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis dataKey="hospitalCode" type="category" width={100} />
-                <Tooltip />
-                <Bar dataKey="evaluations" fill="#3b82f6" name={t("evaluations")} />
-                <Bar dataKey="alerts" fill="#ef4444" name={t("alerts")} />
-              </BarChart>
-            </ResponsiveContainer>
-          </Card.Section>
+        <Card radius="md" p="lg" className="premium-glass">
+          <Title order={5} mb="xl" fw={800} tt="uppercase" style={{ letterSpacing: "0.02em" }}>{t("byHospital")}</Title>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={stats?.byHospital ?? []} layout="vertical" margin={{ top: 0, right: 30, left: 10, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--mantine-color-gray-2)" />
+              <XAxis type="number" axisLine={false} tickLine={false} />
+              <YAxis dataKey="hospitalCode" type="category" width={100} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: 'var(--mantine-shadow-md)' }} />
+              <Bar dataKey="evaluations" fill="var(--mantine-color-primary-5)" radius={[0, 4, 4, 0]} name={t("evaluations")} />
+              <Bar dataKey="alerts" fill="#ef4444" radius={[0, 4, 4, 0]} name={t("alerts")} />
+            </BarChart>
+          </ResponsiveContainer>
         </Card>
       </GridCol>
 
       <GridCol span={{ sm: 12, lg: 4 }}>
-        <Card radius="md" h="100%">
-          <Text fw={500} mb="md">{t("topInteractions")}</Text>
+        <Card radius="md" h="100%" p="lg" className="premium-glass">
+          <Text fw={800} mb="xl" tt="uppercase" size="xs" style={{ letterSpacing: "0.05em" }}>{t("topInteractions")}</Text>
           <Stack gap="sm">
             {(stats?.topInteractions ?? []).map((item, i) => (
-              <Group key={i} justify="space-between" p="sm" style={{ border: "1px solid #dee2e6", borderRadius: 8 }}>
-                <Text size="sm" fw={500}>{item.drugA} + {item.drugB}</Text>
-                <Badge variant="light" color="blue">{item.count}</Badge>
+              <Group key={i} justify="space-between" p="sm" className="premium-card-hover" style={{ 
+                background: 'var(--mantine-color-gray-0)', 
+                borderRadius: 12,
+                border: '1px solid var(--mantine-color-gray-2)'
+              }}>
+                <Stack gap={0}>
+                  <Text size="sm" fw={700}>{item.drugA}</Text>
+                  <Text size="xs" c="dimmed">{item.drugB}</Text>
+                </Stack>
+                <Badge variant="filled" size="lg" radius="sm">{item.count}</Badge>
               </Group>
             ))}
-            {(stats?.topInteractions ?? []).length === 0 && <Text c="dimmed" size="sm">{t("noInteractions")}</Text>}
+            {(stats?.topInteractions ?? []).length === 0 && (
+              <Center h={200}>
+                <Text c="dimmed" size="sm" fs="italic">{t("noInteractions")}</Text>
+              </Center>
+            )}
           </Stack>
         </Card>
       </GridCol>

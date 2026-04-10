@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { Button, Group, Badge, ActionIcon, Modal } from '@mantine/core';
+import { Button, Group, Badge, ActionIcon, Title } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { apiClient } from '@/lib/api-client';
@@ -15,6 +15,7 @@ import { PageContainer } from '@/components/PageContainer/PageContainer';
 import { useAuth } from '@/contexts/auth-context';
 import { MedicationForm } from './medication-form';
 import { useTranslations } from 'next-intl';
+import { SplitLayoutContainer } from '@/components/PageContainer/SplitLayoutContainer';
 
 export default function MedicationsPage() {
   const { hasRole } = useAuth();
@@ -76,14 +77,29 @@ export default function MedicationsPage() {
   });
 
   return (
-    <PageContainer title={t('title')} items={[{ label: 'Dashboard', href: '/dashboard' }, { label: t('title'), href: '/medications' }]}>
-      <Group justify="flex-end" mb="md">
-        {canWrite && <Button leftSection={<IconPlus size={16} />} onClick={() => { setEditing(null); setShowForm(true); }}>{t('add')}</Button>}
-      </Group>
-      <MantineReactTable table={table} />
-      <Modal opened={showForm} onClose={() => setShowForm(false)} title={editing ? t('editTitle') : t('addTitle')} size="lg">
-        <MedicationForm medication={editing} onSuccess={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['medications'] }); }} />
-      </Modal>
-    </PageContainer>
+    <SplitLayoutContainer
+      title={t('title')}
+      breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: t('title'), href: '/medications' }]}
+      showDetail={showForm}
+      onCloseDetail={() => setShowForm(false)}
+      detailTitle={editing ? t('editTitle') : t('addTitle')}
+      actions={
+        canWrite && (
+          <Button leftSection={<IconPlus size={16} />} onClick={() => { setEditing(null); setShowForm(true); }}>
+            {t('add')}
+          </Button>
+        )
+      }
+      master={<MantineReactTable table={table} />}
+      detail={
+        <MedicationForm 
+          medication={editing} 
+          onSuccess={() => { 
+            setShowForm(false); 
+            queryClient.invalidateQueries({ queryKey: ['medications'] }); 
+          }} 
+        />
+      }
+    />
   );
 }

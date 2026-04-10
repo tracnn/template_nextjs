@@ -46,6 +46,7 @@
     "viewer": "Viewer"
   },
   "dashboard": {
+    "analyticsOverview": "Analytics Overview",
     "fromDate": "From date",
     "toDate": "To date",
     "totalEvaluations": "Total evaluations",

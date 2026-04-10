@@ -1,0 +1,43 @@
+.premium-glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+[data-mantine-color-scheme='dark'] .premium-glass {
+  background: rgba(26, 27, 30, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.premium-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--mantine-shadow-lg) !important;
+}
+
+.premium-gradient-bg {
+  background: linear-gradient(135deg, var(--mantine-color-primary-filled) 0%, var(--mantine-color-primary-6) 100%);
+  color: white;
+}
+
+.chart-gradient-primary {
+  fill: url(#colorPrimary);
+}
+
+.stats-card-bg {
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card-bg::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 150px;
+  height: 150px;
+  background: var(--mantine-color-primary-0);
+  opacity: 0.1;
+  border-radius: 50%;
+  pointer-events: none;
+}

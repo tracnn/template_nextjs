@@ -46,6 +46,7 @@
     "viewer": "Viewer"
   },
   "dashboard": {
+    "analyticsOverview": "Tổng quan dữ liệu",
     "fromDate": "Từ ngày",
     "toDate": "Đến ngày",
     "totalEvaluations": "Tổng lượt đánh giá",

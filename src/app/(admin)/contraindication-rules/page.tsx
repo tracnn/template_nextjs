@@ -15,6 +15,7 @@ import { PageContainer } from '@/components/PageContainer/PageContainer';
 import { useAuth } from '@/contexts/auth-context';
 import { ContraindicationForm } from './contraindication-form';
 import { useTranslations } from 'next-intl';
+import { SplitLayoutContainer } from '@/components/PageContainer/SplitLayoutContainer';
 
 export default function ContraindicationRulesPage() {
   const { hasRole } = useAuth();
@@ -77,14 +78,29 @@ export default function ContraindicationRulesPage() {
   });
 
   return (
-    <PageContainer title={t('title')} items={[{ label: 'Dashboard', href: '/dashboard' }, { label: t('title'), href: '/contraindication-rules' }]}>
-      <Group justify="flex-end" mb="md">
-        {canWrite && <Button leftSection={<IconPlus size={16} />} onClick={() => { setEditing(null); setShowForm(true); }}>{t('add')}</Button>}
-      </Group>
-      <MantineReactTable table={table} />
-      <Modal opened={showForm} onClose={() => setShowForm(false)} title={editing ? t('editTitle') : t('addTitle')} size="lg">
-        <ContraindicationForm rule={editing} onSuccess={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['contraindication-rules'] }); }} />
-      </Modal>
-    </PageContainer>
+    <SplitLayoutContainer
+      title={t('title')}
+      breadcrumbs={[{ label: 'Dashboard', href: '/dashboard' }, { label: t('title'), href: '/contraindication-rules' }]}
+      showDetail={showForm}
+      onCloseDetail={() => setShowForm(false)}
+      detailTitle={editing ? t('editTitle') : t('addTitle')}
+      actions={
+        canWrite && (
+          <Button leftSection={<IconPlus size={16} />} onClick={() => { setEditing(null); setShowForm(true); }}>
+            {t('add')}
+          </Button>
+        )
+      }
+      master={<MantineReactTable table={table} />}
+      detail={
+        <ContraindicationForm 
+          rule={editing} 
+          onSuccess={() => { 
+            setShowForm(false); 
+            queryClient.invalidateQueries({ queryKey: ['contraindication-rules'] }); 
+          }} 
+        />
+      }
+    />
   );
 }
