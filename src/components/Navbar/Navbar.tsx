@@ -1,34 +1,41 @@
-'use client';
+"use client";
 
-import { NavLink, Stack, Text, Box } from '@mantine/core';
-import { usePathname } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/auth-context';
-import { navItems } from '@/config';
-import { useTranslations } from 'next-intl';
+import { ScrollArea } from "@mantine/core";
+import { UserButton } from "@/components/UserButton/UserButton";
+import { useAuth } from "@/contexts/auth-context";
+import type { NavItem } from "@/types/nav-item";
+import { NavLinksGroup } from "./NavLinksGroup";
+import classes from "./Navbar.module.css";
 
-export function Navbar() {
-  const pathname = usePathname();
+interface Props {
+  data: NavItem[];
+  hidden?: boolean;
+}
+
+export function Navbar({ data }: Props) {
   const { user } = useAuth();
-  const t = useTranslations('sidebar');
 
-  const visibleItems = navItems.filter((item) => user && item.roles.includes(user.role));
+  const visibleItems = data.filter((item) => {
+    if (!item.roles) return true;
+    return user && item.roles.includes(user.role);
+  });
+
+  const links = visibleItems.map((item) => (
+    <NavLinksGroup key={item.label} {...item} />
+  ));
 
   return (
-    <Stack gap={4} p="sm">
-      <Box p="md" mb="sm">
-        <Text fw={700} size="lg">CDSS Admin</Text>
-      </Box>
-      {visibleItems.map((item) => (
-        <NavLink
-          key={item.href}
-          component={Link}
-          href={item.href}
-          label={t(item.i18nKey)}
-          leftSection={<item.icon size={20} />}
-          active={pathname === item.href}
+    <>
+      <ScrollArea className={classes.links}>
+        <div className={classes.linksInner}>{links}</div>
+      </ScrollArea>
+
+      <div className={classes.footer}>
+        <UserButton
+          name={user?.full_name ?? ""}
+          email={user?.email ?? ""}
         />
-      ))}
-    </Stack>
+      </div>
+    </>
   );
 }
