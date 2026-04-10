@@ -9,6 +9,7 @@ import { Providers } from './providers';
 
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
+import 'mantine-react-table/styles.css';
 
 export const metadata: Metadata = {
   title: 'CDSS Admin',
