@@ -1,53 +1,22 @@
 import {
-  IconComponents,
-  IconDashboard,
-  IconLock,
-  IconMoodSmile,
-} from "@tabler/icons-react";
-import type { NavItem } from "@/types/nav-item";
+  IconDashboard, IconPill, IconArrowsExchange, IconAlertTriangle,
+  IconShieldX, IconKey, IconHistory,
+} from '@tabler/icons-react';
 
-export const navLinks: NavItem[] = [
-  { label: "Dashboard", icon: IconDashboard, link: "/dashboard" },
+export interface NavItem {
+  label: string;
+  icon: React.ComponentType<{ size?: number | string }>;
+  href: string;
+  i18nKey: string;
+  roles: string[];
+}
 
-  {
-    label: "Components",
-    icon: IconComponents,
-    initiallyOpened: true,
-    links: [
-      {
-        label: "Table",
-        link: "/dashboard/table",
-      },
-      {
-        label: "Form",
-        link: "/dashboard/form",
-      },
-    ],
-  },
-  {
-    label: "Auth",
-    icon: IconLock,
-    initiallyOpened: true,
-    links: [
-      {
-        label: "Login",
-        link: "/login",
-      },
-      {
-        label: "Register",
-        link: "/register",
-      },
-    ],
-  },
-  {
-    label: "Sample",
-    icon: IconMoodSmile,
-    initiallyOpened: true,
-    links: [
-      {
-        label: "Landing",
-        link: "/",
-      },
-    ],
-  },
+export const navItems: NavItem[] = [
+  { label: 'Dashboard', icon: IconDashboard, href: '/', i18nKey: 'dashboard', roles: ['super_admin', 'pharmacist', 'viewer'] },
+  { label: 'Medications', icon: IconPill, href: '/medications', i18nKey: 'medications', roles: ['super_admin', 'pharmacist', 'viewer'] },
+  { label: 'Interactions', icon: IconArrowsExchange, href: '/interactions', i18nKey: 'interactions', roles: ['super_admin', 'pharmacist', 'viewer'] },
+  { label: 'Allergen Rules', icon: IconAlertTriangle, href: '/allergen-rules', i18nKey: 'allergenRules', roles: ['super_admin', 'pharmacist', 'viewer'] },
+  { label: 'Contraindications', icon: IconShieldX, href: '/contraindication-rules', i18nKey: 'contraindicationRules', roles: ['super_admin', 'pharmacist', 'viewer'] },
+  { label: 'API Keys', icon: IconKey, href: '/api-keys', i18nKey: 'apiKeys', roles: ['super_admin'] },
+  { label: 'Audit Logs', icon: IconHistory, href: '/audit-logs', i18nKey: 'auditLogs', roles: ['super_admin', 'pharmacist', 'viewer'] },
 ];

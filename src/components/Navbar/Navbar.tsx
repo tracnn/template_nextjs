@@ -1,35 +1,34 @@
-"use client";
+'use client';
 
-import { ScrollArea } from "@mantine/core";
+import { NavLink, Stack, Text, Box } from '@mantine/core';
+import { usePathname } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/auth-context';
+import { navItems } from '@/config';
+import { useTranslations } from 'next-intl';
 
-import { UserButton } from "@/components/UserButton/UserButton";
-import type { NavItem } from "@/types/nav-item";
-import { NavLinksGroup } from "./NavLinksGroup";
-import classes from "./Navbar.module.css";
+export function Navbar() {
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const t = useTranslations('sidebar');
 
-interface Props {
-  data: NavItem[];
-  hidden?: boolean;
-}
-
-export function Navbar({ data }: Props) {
-  const links = data.map((item) => (
-    <NavLinksGroup key={item.label} {...item} />
-  ));
+  const visibleItems = navItems.filter((item) => user && item.roles.includes(user.role));
 
   return (
-    <>
-      <ScrollArea className={classes.links}>
-        <div className={classes.linksInner}>{links}</div>
-      </ScrollArea>
-
-      <div className={classes.footer}>
-        <UserButton
-          image="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=255&q=80"
-          name="Harriette"
-          email="hspoon@outlook.com"
+    <Stack gap={4} p="sm">
+      <Box p="md" mb="sm">
+        <Text fw={700} size="lg">CDSS Admin</Text>
+      </Box>
+      {visibleItems.map((item) => (
+        <NavLink
+          key={item.href}
+          component={Link}
+          href={item.href}
+          label={t(item.i18nKey)}
+          leftSection={<item.icon size={20} />}
+          active={pathname === item.href}
         />
-      </div>
-    </>
+      ))}
+    </Stack>
   );
 }
