@@ -1,62 +1,38 @@
-import "@mantine/core/styles.css";
-import "mantine-react-table/styles.css";
+import type { Metadata } from 'next';
+import { MantineProvider, ColorSchemeScript } from '@mantine/core';
+import { ModalsProvider } from '@mantine/modals';
+import { Notifications } from '@mantine/notifications';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
+import { theme } from '@/styles/theme';
+import { Providers } from './providers';
 
-import {
-  ColorSchemeScript,
-  DirectionProvider,
-  MantineProvider,
-} from "@mantine/core";
-import { ModalsProvider } from "@mantine/modals";
-import { Notifications } from "@mantine/notifications";
-import { inter } from "@/styles/fonts";
-import { theme } from "@/styles/theme";
-import { AppProvider } from "./provider";
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 
-export const metadata = {
-  metadataBase: new URL("https://mantine-admin.vercel.app/"),
-  title: { default: "Mantine Admin", template: "%s | Mantine Admin" },
-  description: "A Modern Dashboard with Next.js.",
-  keywords: [
-    "Next.js",
-    "Mantine",
-    "Admin",
-    "Template",
-    "Admin Template",
-    "Admin Dashboard",
-    "Admin Panel",
-    "Admin UI",
-  ],
-  authors: [
-    {
-      name: "jotyy",
-      url: "https://jotyy.vercel.app",
-    },
-  ],
-  creator: "jotyy",
-  manifest: "https://mantine-admin.vercel.app/site.webmanifest",
+export const metadata: Metadata = {
+  title: 'CDSS Admin',
+  description: 'Clinical Decision Support System — Admin Dashboard',
 };
 
-export default function RootLayout({
-  children,
-}: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en-US">
+    <html lang={locale} suppressHydrationWarning>
       <head>
-        <ColorSchemeScript />
-        <meta
-          name="viewport"
-          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
-        />
+        <ColorSchemeScript defaultColorScheme="auto" />
       </head>
-      <body className={inter.className}>
-        <DirectionProvider>
-          <MantineProvider theme={theme}>
-            <ModalsProvider>
-              <AppProvider>{children}</AppProvider>
-            </ModalsProvider>
-            <Notifications />
-          </MantineProvider>
-        </DirectionProvider>
+      <body>
+        <MantineProvider theme={theme} defaultColorScheme="auto">
+          <ModalsProvider>
+            <Notifications position="top-right" />
+            <NextIntlClientProvider messages={messages}>
+              <Providers>{children}</Providers>
+            </NextIntlClientProvider>
+          </ModalsProvider>
+        </MantineProvider>
       </body>
     </html>
   );
