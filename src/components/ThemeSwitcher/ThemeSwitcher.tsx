@@ -1,28 +1,13 @@
-"use client";
+'use client';
 
-import {
-  Group,
-  type MantineColorScheme,
-  Radio,
-  useMantineColorScheme,
-} from "@mantine/core";
+import { ActionIcon, useMantineColorScheme } from '@mantine/core';
+import { IconSun, IconMoon } from '@tabler/icons-react';
 
-export const ThemeSwitcher = () => {
-  const { colorScheme, setColorScheme } = useMantineColorScheme();
-
+export function ThemeSwitcher() {
+  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   return (
-    <Radio.Group
-      value={colorScheme}
-      onChange={(value) => {
-        setColorScheme(value as MantineColorScheme);
-      }}
-      name="theme"
-      label="Theme Mode"
-    >
-      <Group mt="sm">
-        <Radio value="light" label="Light" />
-        <Radio value="dark" label="Dark" />
-      </Group>
-    </Radio.Group>
+    <ActionIcon variant="subtle" onClick={toggleColorScheme} size="lg">
+      {colorScheme === 'dark' ? <IconSun size={18} /> : <IconMoon size={18} />}
+    </ActionIcon>
   );
-};
+}

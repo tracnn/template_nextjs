@@ -1,47 +1,54 @@
-"use client";
+'use client';
 
-import { ActionIcon, Box, Drawer, Stack, TextInput } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { IconSearch, IconSettings } from "@tabler/icons-react";
-import classes from "./AdminHeader.module.css";
-import { DirectionSwitcher } from "../DirectionSwitcher/DirectionSwitcher";
-import { Logo } from "../Logo/Logo";
-import { ThemeSwitcher } from "../ThemeSwitcher/ThemeSwitcher";
+import { Group, Menu, Button, Text, Badge } from '@mantine/core';
+import { IconLogout } from '@tabler/icons-react';
+import { useAuth } from '@/contexts/auth-context';
+import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher/ThemeSwitcher';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher/LanguageSwitcher';
 
-interface Props {
+interface AdminHeaderProps {
   burger?: React.ReactNode;
 }
 
-export function AdminHeader({ burger }: Props) {
-  const [opened, { close, open }] = useDisclosure(false);
+export function AdminHeader({ burger }: AdminHeaderProps) {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+  const t = useTranslations('auth');
+  const tr = useTranslations('roles');
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/login');
+  };
+
+  const roleLabel: Record<string, string> = {
+    super_admin: tr('super_admin'),
+    pharmacist: tr('pharmacist'),
+    viewer: tr('viewer'),
+  };
 
   return (
-    <header className={classes.header}>
-      {burger && burger}
-      <Logo />
-      <Box style={{ flex: 1 }} />
-      <TextInput
-        placeholder="Search"
-        variant="filled"
-        leftSection={<IconSearch size="0.8rem" />}
-        style={{}}
-      />
-      <ActionIcon onClick={open} variant="subtle">
-        <IconSettings size="1.25rem" />
-      </ActionIcon>
-
-      <Drawer
-        opened={opened}
-        onClose={close}
-        title="Settings"
-        position="right"
-        transitionProps={{ duration: 0 }}
-      >
-        <Stack gap="lg">
-          <ThemeSwitcher />
-          <DirectionSwitcher />
-        </Stack>
-      </Drawer>
-    </header>
+    <Group h="100%" px="md" justify="space-between">
+      <Group>{burger}</Group>
+      <Group gap="sm">
+        <LanguageSwitcher />
+        <ThemeSwitcher />
+        <Menu shadow="md" width={200}>
+          <Menu.Target>
+            <Button variant="subtle" size="sm">
+              <Text size="sm" mr={4}>{user?.full_name}</Text>
+              <Badge size="xs" variant="light">{roleLabel[user?.role ?? ''] ?? user?.role}</Badge>
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Item leftSection={<IconLogout size={14} />} onClick={handleLogout}>
+              {t('logout')}
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+      </Group>
+    </Group>
   );
 }
