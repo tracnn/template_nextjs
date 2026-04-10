@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { Button, Group, Title, Badge, ActionIcon, Modal, TextInput, Stack, Code, CopyButton } from '@mantine/core';
+import { Button, Group, Badge, ActionIcon, Modal, TextInput, Stack, Code, CopyButton } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { IconTrash, IconPlus, IconCopy, IconCheck } from '@tabler/icons-react';
 import { apiClient } from '@/lib/api-client';
 import { ApiKeyItem } from '@/lib/api-types';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
-import { DataTable, Column } from '@/components/DataTable/DataTable';
+import { MantineReactTable, type MRT_ColumnDef } from 'mantine-react-table';
+import { useCustomTable } from '@/hooks/use-custom-table';
+import { PageContainer } from '@/components/PageContainer/PageContainer';
 import { AuthGuard } from '@/components/auth-guard';
 import { useTranslations } from 'next-intl';
 
@@ -23,12 +25,12 @@ export default function ApiKeysPage() {
   const [newKeyHospital, setNewKeyHospital] = useState('');
   const [createdKey, setCreatedKey] = useState<string | null>(null);
 
-  const columns: Column<ApiKeyItem>[] = [
-    { header: t('name'), accessor: 'name' },
-    { header: t('hospitalCode'), accessor: 'hospitalCode' },
-    { header: t('status'), accessor: (r) => <Badge color={r.isActive ? 'green' : 'gray'}>{r.isActive ? tc('active') : tc('inactive')}</Badge> },
-    { header: t('lastUsed'), accessor: (r) => r.lastUsedAt ? new Date(r.lastUsedAt).toLocaleString('vi-VN') : t('neverUsed') },
-    { header: t('createdAt'), accessor: (r) => new Date(r.createdAt).toLocaleString('vi-VN') },
+  const columns: MRT_ColumnDef<ApiKeyItem>[] = [
+    { accessorKey: 'name', header: t('name') },
+    { accessorKey: 'hospitalCode', header: t('hospitalCode') },
+    { accessorKey: 'isActive', header: t('status'), Cell: ({ row }) => <Badge color={row.original.isActive ? 'green' : 'gray'}>{row.original.isActive ? tc('active') : tc('inactive')}</Badge> },
+    { accessorKey: 'lastUsedAt', header: t('lastUsed'), Cell: ({ row }) => row.original.lastUsedAt ? new Date(row.original.lastUsedAt).toLocaleString('vi-VN') : t('neverUsed') },
+    { accessorKey: 'createdAt', header: t('createdAt'), Cell: ({ row }) => new Date(row.original.createdAt).toLocaleString('vi-VN') },
   ];
 
   const createMutation = useMutation({
@@ -51,16 +53,36 @@ export default function ApiKeysPage() {
     });
   };
 
+  const table = useCustomTable<ApiKeyItem>({
+    columns,
+    data: pq.data?.data ?? [],
+    rowCount: pq.data?.meta.totalItems ?? 0,
+    manualPagination: true,
+    enableTopToolbar: true,
+    enableGlobalFilter: false,
+    state: {
+      isLoading: pq.isLoading,
+      pagination: { pageIndex: pq.page - 1, pageSize: 20 },
+    },
+    onPaginationChange: (updater) => {
+      const newPagination = typeof updater === 'function'
+        ? updater({ pageIndex: pq.page - 1, pageSize: 20 })
+        : updater;
+      pq.setPage(newPagination.pageIndex + 1);
+    },
+    enableRowActions: true,
+    renderRowActions: ({ row }) => (
+      <ActionIcon variant="subtle" color="red" onClick={() => confirmDelete(row.original)}><IconTrash size={16} /></ActionIcon>
+    ),
+  });
+
   return (
     <AuthGuard roles={['super_admin']}>
-      <div>
-        <Group justify="space-between" mb="md">
-          <Title order={3}>{t('title')}</Title>
+      <PageContainer title={t('title')} items={[{ label: 'Dashboard', href: '/dashboard' }, { label: t('title'), href: '/api-keys' }]}>
+        <Group justify="flex-end" mb="md">
           <Button leftSection={<IconPlus size={16} />} onClick={() => setShowCreate(true)}>{t('create')}</Button>
         </Group>
-        <DataTable columns={columns} data={pq.data?.data ?? []} totalPages={pq.data?.meta.totalPages ?? 0} currentPage={pq.page} onPageChange={pq.setPage} isLoading={pq.isLoading}
-          actions={(row) => <ActionIcon variant="subtle" color="red" onClick={() => confirmDelete(row)}><IconTrash size={16} /></ActionIcon>}
-        />
+        <MantineReactTable table={table} />
         <Modal opened={showCreate} onClose={() => { setShowCreate(false); setCreatedKey(null); }} title={createdKey ? t('createdTitle') : t('createTitle')}>
           {createdKey ? (
             <Stack gap="md">
@@ -84,7 +106,7 @@ export default function ApiKeysPage() {
             </Stack>
           )}
         </Modal>
-      </div>
+      </PageContainer>
     </AuthGuard>
   );
 }

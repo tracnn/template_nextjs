@@ -3,13 +3,15 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notifications } from '@mantine/notifications';
-import { Button, Group, Title, Badge, ActionIcon, Modal } from '@mantine/core';
+import { Button, Group, Badge, ActionIcon, Modal } from '@mantine/core';
 import { modals } from '@mantine/modals';
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { apiClient } from '@/lib/api-client';
 import { DrugInteraction } from '@/lib/api-types';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
-import { DataTable, Column } from '@/components/DataTable/DataTable';
+import { MantineReactTable, type MRT_ColumnDef } from 'mantine-react-table';
+import { useCustomTable } from '@/hooks/use-custom-table';
+import { PageContainer } from '@/components/PageContainer/PageContainer';
 import { useAuth } from '@/contexts/auth-context';
 import { InteractionForm } from './interaction-form';
 import { useTranslations } from 'next-intl';
@@ -26,11 +28,11 @@ export default function InteractionsPage() {
   const [showForm, setShowForm] = useState(false);
   const canWrite = hasRole(['super_admin', 'pharmacist']);
 
-  const columns: Column<DrugInteraction>[] = [
-    { header: t('drugA'), accessor: (r) => r.drugA?.drugName ?? r.drugAId },
-    { header: t('drugB'), accessor: (r) => r.drugB?.drugName ?? r.drugBId },
-    { header: t('severity'), accessor: (r) => <Badge color={severityColor[r.severity] ?? 'gray'}>{r.severity}</Badge> },
-    { header: t('sourceRef'), accessor: (r) => r.sourceRef ?? '—' },
+  const columns: MRT_ColumnDef<DrugInteraction>[] = [
+    { accessorKey: 'drugAId', header: t('drugA'), Cell: ({ row }) => row.original.drugA?.drugName ?? row.original.drugAId },
+    { accessorKey: 'drugBId', header: t('drugB'), Cell: ({ row }) => row.original.drugB?.drugName ?? row.original.drugBId },
+    { accessorKey: 'severity', header: t('severity'), Cell: ({ row }) => <Badge color={severityColor[row.original.severity] ?? 'gray'}>{row.original.severity}</Badge> },
+    { accessorKey: 'sourceRef', header: t('sourceRef'), Cell: ({ row }) => row.original.sourceRef ?? '—' },
   ];
 
   const deleteMutation = useMutation({
@@ -46,23 +48,43 @@ export default function InteractionsPage() {
     });
   };
 
+  const table = useCustomTable<DrugInteraction>({
+    columns,
+    data: pq.data?.data ?? [],
+    rowCount: pq.data?.meta.totalItems ?? 0,
+    manualPagination: true,
+    enableTopToolbar: true,
+    enableGlobalFilter: true,
+    onGlobalFilterChange: pq.setSearch,
+    state: {
+      globalFilter: pq.search,
+      isLoading: pq.isLoading,
+      pagination: { pageIndex: pq.page - 1, pageSize: 20 },
+    },
+    onPaginationChange: (updater) => {
+      const newPagination = typeof updater === 'function'
+        ? updater({ pageIndex: pq.page - 1, pageSize: 20 })
+        : updater;
+      pq.setPage(newPagination.pageIndex + 1);
+    },
+    enableRowActions: canWrite,
+    renderRowActions: canWrite ? ({ row }) => (
+      <Group gap={4}>
+        <ActionIcon variant="subtle" onClick={() => { setEditing(row.original); setShowForm(true); }}><IconEdit size={16} /></ActionIcon>
+        <ActionIcon variant="subtle" color="red" onClick={() => confirmDelete(row.original)}><IconTrash size={16} /></ActionIcon>
+      </Group>
+    ) : undefined,
+  });
+
   return (
-    <div>
-      <Group justify="space-between" mb="md">
-        <Title order={3}>{t('title')}</Title>
+    <PageContainer title={t('title')} items={[{ label: 'Dashboard', href: '/dashboard' }, { label: t('title'), href: '/interactions' }]}>
+      <Group justify="flex-end" mb="md">
         {canWrite && <Button leftSection={<IconPlus size={16} />} onClick={() => { setEditing(null); setShowForm(true); }}>{t('add')}</Button>}
       </Group>
-      <DataTable columns={columns} data={pq.data?.data ?? []} totalPages={pq.data?.meta.totalPages ?? 0} currentPage={pq.page} onPageChange={pq.setPage} search={pq.search} onSearchChange={pq.setSearch} isLoading={pq.isLoading}
-        actions={canWrite ? (row) => (
-          <Group gap={4}>
-            <ActionIcon variant="subtle" onClick={() => { setEditing(row); setShowForm(true); }}><IconEdit size={16} /></ActionIcon>
-            <ActionIcon variant="subtle" color="red" onClick={() => confirmDelete(row)}><IconTrash size={16} /></ActionIcon>
-          </Group>
-        ) : undefined}
-      />
+      <MantineReactTable table={table} />
       <Modal opened={showForm} onClose={() => setShowForm(false)} title={editing ? t('editTitle') : t('addTitle')} size="lg">
         <InteractionForm interaction={editing} onSuccess={() => { setShowForm(false); queryClient.invalidateQueries({ queryKey: ['interactions'] }); }} />
       </Modal>
-    </div>
+    </PageContainer>
   );
 }
