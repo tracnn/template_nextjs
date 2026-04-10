@@ -5,7 +5,6 @@ import {
 
 export type CustomTableOptions<TData extends Record<string, any> = {}> = Omit<
   MRT_TableOptions<TData>,
-  | "manualPagination"
   | "enablePagination"
   | "mantinePaginationProps"
   | "paginationDisplayMode"
