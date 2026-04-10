@@ -1,0 +1,8 @@
+.heading {
+  color: light-dark(var(--mantine-color-gray-9), var(--mantine-color-white));
+  text-decoration: none;
+}
+
+.subheading {
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-white));
+}
